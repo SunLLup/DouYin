@@ -2,6 +2,7 @@ package com.example.springbootdouy.service;
 
 import com.example.springbootdouy.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.springbootdouy.until.UserResult;
 
 import java.util.HashMap;
 
@@ -15,4 +16,7 @@ import java.util.HashMap;
  */
 public interface IUserService extends IService<User> {
 
+    UserResult getAuthor(String userId, String token);
+
+    UserResult getAuthorVisit(String userId, String token);
 }

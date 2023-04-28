@@ -16,7 +16,7 @@ public class UserResult {
     private ResultUser user;
 
 
-    public static UserResult  ok(ResultUser user){
+    public static UserResult ok(ResultUser user){
         UserResult result = new UserResult();
         result.setStatus_code(0);
         result.setStatus_msg(null);

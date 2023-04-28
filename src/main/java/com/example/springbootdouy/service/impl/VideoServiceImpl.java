@@ -11,10 +11,9 @@ import com.example.springbootdouy.mapper.VideoMapper;
 import com.example.springbootdouy.service.IUserService;
 import com.example.springbootdouy.service.IVideoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.springbootdouy.until.AliyunOss;
-import com.example.springbootdouy.until.JWTUtils;
-import com.example.springbootdouy.until.VideolistResult;
+import com.example.springbootdouy.until.*;
 import javafx.scene.control.TableView;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -48,6 +47,11 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
     @Resource
     CommentMapper commentMapper;
 
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
+    @Resource
+    GetUserRedis getUserRedis;
+
     @Override
     public VideolistResult getMyvideo(String token, String userId) {
 
@@ -71,53 +75,57 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
         //用于存放前台所需要的数据
         ArrayList<VideoListDao> videoListDaos = new ArrayList<>();
 
-
-
         for (Video video : videoList) {
             //todo 获取作者信息
+
+            //todo 去redis查找
             ResultUser resultUser = new ResultUser();
 
-            User user = iUserService.getById(video.getUserId());
-            System.out.println(user+"用户信息");
-            resultUser.setId(user.getId());
-            resultUser.setName(user.getUsername());
-            //todo 用户关注/粉丝
+            ResultUser user1 = getUserRedis.getUser(userId);
+            if (user1!=null){
+                resultUser=user1;
+            }else {
+                User user = iUserService.getById(video.getUserId());
+                System.out.println(user+"用户信息");
+                resultUser.setId(user.getId());
+                resultUser.setName(user.getUsername());
+                //todo 用户关注/粉丝
 
 
-            //关注--粉丝
-            int follow = followMapper.selectObjs(new QueryWrapper<Follow>().eq("user_id", user.getId())).size();
-            int follower = followMapper.selectObjs(new QueryWrapper<Follow>().eq("followed_user_id",user.getId())).size();
+                //关注--粉丝
+                int follow = followMapper.selectObjs(new QueryWrapper<Follow>().eq("user_id", user.getId())).size();
+                int follower = followMapper.selectObjs(new QueryWrapper<Follow>().eq("followed_user_id",user.getId())).size();
 
-            //当前用户是否关注查看的用户主页的人
-            Follow follow1 = followMapper.selectOne(new QueryWrapper<Follow>().eq("user_id",userDao.getUserId()).eq("followed_user_id", userId));
+                //当前用户是否关注查看的用户主页的人
+                Follow follow1 = followMapper.selectOne(new QueryWrapper<Follow>().eq("user_id",userDao.getUserId()).eq("followed_user_id", userId));
 
 
-            resultUser.setFollower_count(follower);
-            resultUser.setFollow_count(follow);
-            resultUser.setIs_follow(follow1==null?false:true);
+                resultUser.setFollower_count(follower);
+                resultUser.setFollow_count(follow);
+                resultUser.setIs_follow(follow1==null?false:true);
 
-            resultUser.setAvatar(user.getAvatar());
-            resultUser.setBackground_image(user.getBackgroundImage());
-            resultUser.setSignature(user.getSignature());
+                resultUser.setAvatar(user.getAvatar());
+                resultUser.setBackground_image(user.getBackgroundImage());
+                resultUser.setSignature(user.getSignature());
 
-            //todo 获赞数量  作品数 喜欢数
-            //获赞数据量
-            int f_count=0;
-            for (Video video1 : videoList) {
-                //获取视频信息
-                f_count +=favoriteMapper.selectList(new QueryWrapper<Favorite>().eq("video_id", video1.getId())).size();
+                //todo 获赞数量  作品数 喜欢数
+                //获赞数据量
+                int f_count=0;
+                for (Video video1 : videoList) {
+                    //获取视频信息
+                    f_count +=favoriteMapper.selectList(new QueryWrapper<Favorite>().eq("video_id", video1.getId())).size();
 
+                }
+                System.out.println("用户获赞数量："+f_count);
+                //喜欢数
+                int userlike_count = favoriteMapper.selectList(new QueryWrapper<Favorite>().eq("user_id", video.getUserId())).size();
+
+
+                resultUser.setTotal_favorited(f_count);
+                //作品数量
+                resultUser.setWork_count(videoList.size());
+                resultUser.setFavorite_count(userlike_count);
             }
-            System.out.println("用户获赞数量："+f_count);
-            //喜欢数
-            int userlike_count = favoriteMapper.selectList(new QueryWrapper<Favorite>().eq("user_id", video.getUserId())).size();
-
-
-            resultUser.setTotal_favorited(f_count);
-            //作品数量
-            resultUser.setWork_count(videoList.size());
-            resultUser.setFavorite_count(userlike_count);
-
 
 
 

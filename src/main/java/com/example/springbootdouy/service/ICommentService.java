@@ -2,6 +2,7 @@ package com.example.springbootdouy.service;
 
 import com.example.springbootdouy.entity.Comment;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.springbootdouy.until.CommentListResult;
 
 /**
  * <p>
@@ -13,4 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ICommentService extends IService<Comment> {
 
+    CommentListResult getCommentList(String token, String videoId);
 }

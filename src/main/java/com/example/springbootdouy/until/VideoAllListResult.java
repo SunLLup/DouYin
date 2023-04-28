@@ -9,10 +9,10 @@ import java.util.ArrayList;
 public class VideoAllListResult {
     private Integer status_code;
     private String status_msg;
-    private Integer next_time;
+    private long next_time;
     private ArrayList<VideoListDao> video_list;
 
-    public static VideoAllListResult ok(int status_code,String status_msg,Integer next_time, ArrayList<VideoListDao> video_list){
+    public static VideoAllListResult ok(int status_code,String status_msg,long next_time, ArrayList<VideoListDao> video_list){
         VideoAllListResult videolistResult = new VideoAllListResult();
         videolistResult.setStatus_code(status_code);
         videolistResult.setStatus_msg(null);
@@ -23,7 +23,7 @@ public class VideoAllListResult {
         return videolistResult;
     }
 
-    public static VideoAllListResult fail(String status_code,String status_msg,Integer next_time, ArrayList<VideoListDao> video_list){
+    public static VideoAllListResult fail(String status_code,String status_msg,long next_time, ArrayList<VideoListDao> video_list){
         VideoAllListResult videolistResult = new VideoAllListResult();
         videolistResult.setStatus_code(2);
         videolistResult.setStatus_msg("视频列表获取视频");

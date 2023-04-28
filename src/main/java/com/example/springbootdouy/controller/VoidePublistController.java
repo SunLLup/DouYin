@@ -20,12 +20,14 @@ import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/douyin")
 public class VoidePublistController {
+
     @Resource
     AliyunOss aliyunOss;
     @Resource
@@ -90,11 +92,13 @@ public class VoidePublistController {
 
     @RequestMapping("/feed")
     public VideoAllListResult feed(String latest_time,String token){
+        int videocount=0;
+        Long next_time=0l;
         System.out.println("欢迎来到视频流---------------------");
-        //创建时间戳
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        int next_time= (int) timestamp.getTime();
-        System.out.println("时间戳:"+next_time);
+//        //创建时间戳
+//        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+//        long next_time = timestamp.getTime();
+//        System.out.println("时间戳:"+next_time+"---传来的:"+latest_time);
 
         // todo 业务层
         //token 登录用户的id
@@ -103,14 +107,30 @@ public class VoidePublistController {
 
         // todo 查找所有视频
         List<Video> videoList = videoMapper.selectList(new QueryWrapper<Video>());
+
+        //todo 对视频按添加时间排序
+        videoList.sort((t1,t2) -> t2.getCreateTime().compareTo(t1.getCreateTime()));
+
+
         //用于存放前台所需要的数据
         ArrayList<VideoListDao> videoListDaos = new ArrayList<>();
 
 
 
 
-
         for (Video video : videoList) {
+            long epochMilli = (video.getCreateTime()).toInstant(ZoneOffset.of("+8")).toEpochMilli();
+            System.out.println("对象里转换的时间戳："+epochMilli);
+            if (Long.parseLong(latest_time)<epochMilli){
+                continue;
+            }
+            if(videocount>3){
+                break;
+            }
+            next_time=epochMilli;
+
+            videocount++;
+
 
             //todo 获取作者信息
             ResultUser resultUser = new ResultUser();

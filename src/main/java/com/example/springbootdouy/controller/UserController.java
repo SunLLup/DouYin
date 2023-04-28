@@ -78,62 +78,8 @@ public class UserController {
 //    用户信息
     @RequestMapping("/user")
     public UserResult user(String user_id, String token){
-        //todo 根据token来查找主页数据
-        //token 登录用户的id
-        UserDao userDao = JWTUtils.checkToken(token);
 
-        //todo 登录的用户id
-        int userid=Integer.parseInt(userDao.getUserId());
-
-        //根据用户id查找所有视频
-        List<Video> videoList = videoMapper.selectList(new QueryWrapper<Video>().eq("user_id", userid));
-
-        //todo 获取作者信息
-        ResultUser resultUser = new ResultUser();
-
-        User user = iUserService.getById(userid);
-        System.out.println(user+"用户信息");
-        resultUser.setId(user.getId());
-        resultUser.setName(user.getUsername());
-        //todo 用户关注/粉丝
-
-
-        //关注--粉丝
-        int follow = followMapper.selectObjs(new QueryWrapper<Follow>().eq("user_id", user.getId())).size();
-        int follower = followMapper.selectObjs(new QueryWrapper<Follow>().eq("followed_user_id",user.getId())).size();
-
-        resultUser.setFollower_count(follower);
-        resultUser.setFollow_count(follow);
-        resultUser.setIs_follow(true);
-
-        resultUser.setAvatar(user.getAvatar());
-        resultUser.setBackground_image(user.getBackgroundImage());
-        resultUser.setSignature(user.getSignature());
-
-        //todo 获赞数量  作品数 喜欢数
-        //获赞数据量
-        int f_count=0;
-        for (Video video1 : videoList) {
-            //获取视频信息
-            f_count +=favoriteMapper.selectList(new QueryWrapper<Favorite>().eq("video_id", video1.getId())).size();
-
-
-        }
-        System.out.println("用户获赞数量："+f_count);
-        //喜欢数
-        int userlike_count = favoriteMapper.selectList(new QueryWrapper<Favorite>().eq("user_id", userid)).size();
-
-        resultUser.setTotal_favorited(f_count);
-        //作品数量
-        resultUser.setWork_count(videoList.size());
-        resultUser.setFavorite_count(userlike_count);
-
-
-        return UserResult.ok(resultUser);
-
-
-
-
+        return iUserService.getAuthor(user_id,token);
     }
 
 
